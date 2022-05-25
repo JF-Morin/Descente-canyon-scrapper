@@ -35,24 +35,28 @@ class Canyon:
     # Methods
 
     def fill_canyon_data(self, canyon_url):
+        print('\n' + canyon_url)
         session = HTMLSession()
-        print(canyon_url)
         base_url = 'https://www.descente-canyon.com'
         urls = []
         request = session.get(canyon_url)
 
-        tab = request.html.find('.nav.nav-pills.onglets li')[1]
-        tab_url = base_url + tab.find('a')[0].attrs['href']
+        tab = request.html.find('.nav.nav-pills.onglets li')
+        if not tab:
+            return
+        tab_url = base_url + tab[1].find('a')[0].attrs['href']
         description_html = session.get(tab_url)
 
         # Location description
-        location_description = description_html.html.find('.fichetechniqueintegree .list-group .list-group-item')[1]
+        location_description = description_html.html.find('.fichetechniqueintegree .list-group .list-group-item')
+        if not location_description:
+            return
         labels = ["Pays","Région","Département","Commune","Massif","Bassin", "Cours d'eau"]
         description_properties = ["country","state","region","city","massif","bassin","water_stream"]
         i = 0
         for index,label in enumerate(labels):
-            if label in location_description.text:
-                setattr(self, description_properties[index], location_description.find('span')[i].text)
+            if label in location_description[1].text:
+                setattr(self, description_properties[index], location_description[1].find('span')[i].text)
                 i += 1
 
         # Canyon Interest
@@ -99,19 +103,34 @@ class Canyon:
         shuttle_distance = description_html.html.find('.fichetechniqueintegree .list-group .list-group-item')[12].find('.badge')[0]
         self.shuttle_distance = "" if shuttle_distance.text == "??" else shuttle_distance.text.replace('Navette: ','')
 
+
+        # Text description
+        h3_elements = description_html.html.find('.nav.nav-pills.onglets + div')[0].find('h3')
+        p_elements = description_html.html.find('.nav.nav-pills.onglets + div')[0].find('p')
+        for index,h3 in enumerate(h3_elements):
+            if h3.text == 'Accès':
+                self.access_description = p_elements[index].text
+            elif h3.text == 'Descente':
+                self.approach_description = p_elements[index].text
+            elif h3.text == 'Retour':
+                self.descent_description = p_elements[index].text
+            elif h3.text == 'Engagement':
+                self.exit_description = p_elements[index].text
+
+
         
-        print("Interest: " + str(self.interets) + '/4')
-        print("Sarting elevation: " + str(self.starting_altitude))
-        print("Elevaton drop: " + str(self.elevation_drop))
-        print("Length: " + str(self.length))
-        print("Max Waterfall height: " + str(self.max_waterfall_height))
-        print("Grade: " + self.grade)
-        print("Min Rope Length: " + str(self.minimum_rope_length))
-        print("Approach: " + self.approach_time)
-        print("Descent: " + self.descent_time)
-        print("Exit: " + self.exit_time)
-        print("Shuttle: " + self.shuttle_distance)
-        print('')
+        # print("Interest: " + str(self.interets) + '/4')
+        # print("Sarting elevation: " + str(self.starting_altitude))
+        # print("Elevaton drop: " + str(self.elevation_drop))
+        # print("Length: " + str(self.length))
+        # print("Max Waterfall height: " + str(self.max_waterfall_height))
+        # print("Grade: " + self.grade)
+        # print("Min Rope Length: " + str(self.minimum_rope_length))
+        # print("Approach: " + self.approach_time)
+        # print("Descent: " + self.descent_time)
+        # print("Exit: " + self.exit_time)
+        # print("Shuttle: " + self.shuttle_distance)
+        # print('')
    
 
         return
